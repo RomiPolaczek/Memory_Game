@@ -17,10 +17,6 @@ class UserInterface
         System.Console.WriteLine("Please enter your name:");
         string namePlayer = Console.ReadLine();
         m_player = new Player(namePlayer);
-        //m_player.Name = namePlayer;
-        // m_Players[0] = new Player { Name = namePlayer };
-        // m_Players[1] = new Player { Name = namePlayer };
-
     }
 
     public void SetBoardSize()
@@ -84,7 +80,7 @@ class UserInterface
 
             for (int i = 0; i < m_Board.Height; i++)
             {
-               // drawRowAtIndex(i);
+                drawRowAtIndex(i);
                 Console.WriteLine(equalLine);
             }
 
@@ -111,12 +107,11 @@ class UserInterface
 
             for (int j = 0; j < m_Board.Width; j++)
             {
-                //BoardLetter currentBoardLetter = m_GameLogicManager.Letters[i_Index, j];
+               // BoardLetter currentBoardLetter = m_GameLogicManager.Letters[i_Index, j];
                // string CellToProint = string.Format(" {0} |", currentBoardLetter.IsHidden ? ' ' : currentBoardLetter.Letter);
-
+                Console.Write("   |");
                 //Console.Write(CellToProint);
             }
-
             Console.WriteLine();
         }
 }
