@@ -1,42 +1,31 @@
 using System;
 namespace MemoryGame;
-class Board
+class Board<T>
 {
-    
     private int m_Height;
     private int m_Width;
-
-     public int Height
+    private Card<T>[,] m_CardsMatrix;
+        
+    public int Height
     {
         get { return m_Height; }
-        set 
-        { 
-            if(value >= 4 && value <= 6)
-            {
-                m_Height = value;
-            }
-            else
-            {
-                throw new ArgumentException("Height must be an even number.");
-            }
-        }
+        set { m_Height = value;}
     }
-        
 
     public int Width
     {
         get { return m_Width; }
-        set 
-        { 
-            if(value >= 4 && value <= 6)
-            {
-                m_Width = value;
-            }
-            else
-            {
-               
-            }
-         }
+        set { m_Width = value;}
+    }
+
+    public Card<T>[,] CardsMatrix
+    {
+        get { return m_CardsMatrix; }
+    }
+
+    public Card<T> GetCardInIndex(int i_row, int i_col)
+    {
+        return m_CardsMatrix[i_row , i_col];
     }
 
     public bool IsBoardSizeEven()
@@ -49,9 +38,24 @@ class Board
         return isBoardSizeEven;
     }
 
-    public Board(int height, int width)
+     public Board(int height, int width, T[] values)
     {
         m_Height = height;
         m_Width = width;
+        InitializeBoard(values);
+    }
+
+    public void InitializeBoard(T[] values)
+    {
+        m_CardsMatrix = new Card<T>[m_Height, m_Width];
+        int valueIndex = 0;
+
+        for (int i = 0; i < m_Height; i++)
+        {
+            for (int j = 0; j < m_Width; j++)
+            {
+                m_CardsMatrix[i, j] = new Card<T>(values[valueIndex++]);
+            }
+        }
     }
 }
