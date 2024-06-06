@@ -10,5 +10,6 @@ class Program
         UI.SetBoardSize();
         UI.SetPlayersName();
         UI.DrawBoard();
+        UI.PlayTurn();
     }
 }

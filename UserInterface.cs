@@ -1,11 +1,13 @@
 using System;
 using System.Text;
+using System.Threading;
 namespace MemoryGame;
 
 class UserInterface
 {
     private const int k_MaxBoardLength = 6;
     private const int k_MinBoardLength = 4;
+    private bool m_EndGame = false;
 
     private GameLogicManager<char> m_LogicManager = new GameLogicManager<char>();
     
@@ -105,10 +107,9 @@ class UserInterface
 
         for (int j = 0; j < m_LogicManager.Board.Width; j++)
         {
-            char c = m_LogicManager.Board.GetCardInIndex(i_Index, j).Value;
-            // BoardLetter currentBoardLetter = m_GameLogicManager.Letters[i_Index, j];
-            //string CellToProint = string.Format(" {0} |", currentBoardLetter.IsHidden ? ' ' : currentBoardLetter.Letter);
-            string CardToPrint = string.Format(" {0} |",c);
+            char cardLetter = m_LogicManager.Board.GetCardInIndex(i_Index, j).Value;
+            bool isDisplayed= m_LogicManager.Board.GetCardInIndex(i_Index, j).Displayed;
+            string CardToPrint = string.Format(" {0} |", isDisplayed ? cardLetter : ' ');
             Console.Write(CardToPrint);
         }
         Console.WriteLine();
@@ -139,39 +140,108 @@ class UserInterface
         return letters;
     }
 
+    public void RunGame()
+    {
+        while (!m_LogicManager.Board.AreAllCardsDisplayed() && !m_EndGame)
+        {
+            PlayTurn();
+        }
+    }
+    public void PlayTurn()
+    {
+        Console.WriteLine("{0}, it's your turn.", m_LogicManager.Player.Name);
+        Card<char> firstCard = ChooseOneCard();
+        if (m_EndGame)
+        {
+            Console.WriteLine("Good Bye!");
+            Environment.Exit(0);
+        }
 
-//Need to finish this method
-    // public void PlayTurn()
-    // {
-    //     Console.WriteLine("{0}, it's your turn.", m_LogicManager.Player.Name);
-    //     Console.WriteLine("Please select a card:");
-    //     string indexStr = Console.ReadLine();
+        Console.Clear();
+        DrawBoard();
+        Card<char> secondCard = ChooseOneCard();
+        DrawBoard();
+    
+        if(firstCard.Value == secondCard.Value)
+        {
+            Console.WriteLine("It's a match");
+            m_LogicManager.Player.Score += 1;
+        }
+        else
+        {
+            Console.WriteLine("No match. Try again next turn.");
+            Thread.Sleep(2000);
+            firstCard.Displayed = false;
+            secondCard.Displayed = false;
+        }
+    
+        DrawBoard();
+    }
 
-    //     int rowIndex = indexStr[0] - 'A';
-    //     int colIndex = int.Parse(indexStr.Substring(1)) - 1;
+    public Card<char> ChooseOneCard()
+    {
+        Card<char> selectedCard = null;
 
-    //     if (rowIndex < 0 || rowIndex >= m_Board.Height || colIndex < 0 || colIndex >= m_Board.Width)
-    //     {
-    //         Console.WriteLine("Invalid card selection. Please try again.");
-    //         return;
-    //     }
+        while(selectedCard == null && !m_EndGame)
+        {
+            Console.WriteLine("Please select a card:");
+            string chosenCell = Console.ReadLine();
 
-    //     // Get the card at the selected position
-    //     Card<T> selectedCard = m_Board.GetCardInIndex(rowIndex, colIndex);
+            if (chosenCell == "Q")
+            {
+                m_EndGame=true;
+            }
+            else if (parseInput(chosenCell, out int row, out int col))
+            {
+                selectedCard = m_LogicManager.Board.GetCardInIndex(row, col);
+                if (!selectedCard.Displayed)
+                {
+                    selectedCard.Displayed = true;
+                }
+                else
+                {
+                    Console.WriteLine("Card {0} has already been flipped. Please select another card.", chosenCell);
+                    selectedCard = null;
+                }
+            }
+            else
+            {
+                Console.WriteLine("Invalid input. Please try again.");
+            }
+         }
 
-    //     // Check if the card is already flipped
-    //     if (selectedCard.Flipped)
-    //     {
-    //         Console.WriteLine("Card {0} has already been flipped. Please select another card.", input);
-    //         return;
-    //     }
+        return selectedCard;
 
-    //     // Flip the card
-    //     selectedCard.Flipped = true;
+    }
 
-    //     // Display the current state of the board
-    //     Console.WriteLine("Selected card {0} has value {1}.", input, selectedCard.Value);
-    //     DisplayBoardState();
+    private bool parseInput(string input, out int row, out int col)
+    {
+        row = -1;
+        col = -1;
+        bool isValidInput = true;
 
-    // }
+        if (input.Length != 2)
+        {
+            isValidInput = false;
+        }
+
+        col = input[0] - 'A';
+        if (col < 0 || col >= m_LogicManager.Board.Width)
+        {
+            isValidInput = false;
+        }
+
+        if (!int.TryParse(input.Substring(1), out row))
+        {
+            isValidInput = false;
+        }
+
+        row--; 
+        if (row < 0 || row >= m_LogicManager.Board.Height)
+        {
+            isValidInput = false;
+        }
+
+        return isValidInput;
+    }
 }

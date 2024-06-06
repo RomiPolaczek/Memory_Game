@@ -48,6 +48,7 @@ class Board<T>
     public void InitializeBoard(T[] values)
     {
         m_CardsMatrix = new Card<T>[m_Height, m_Width];
+
         int valueIndex = 0;
 
         for (int i = 0; i < m_Height; i++)
@@ -57,5 +58,22 @@ class Board<T>
                 m_CardsMatrix[i, j] = new Card<T>(values[valueIndex++]);
             }
         }
+    }
+
+    public bool AreAllCardsDisplayed()
+    {
+        bool allCardsDisplayed = true;
+        for (int i = 0; i < m_Height; i++)
+        {
+            for (int j = 0; j < m_Width; j++)
+            {
+                if(!m_CardsMatrix[i,j].Displayed)
+                {
+                    allCardsDisplayed = false;
+                }
+            }
+        }
+
+        return allCardsDisplayed;
     }
 }

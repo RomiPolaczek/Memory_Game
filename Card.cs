@@ -4,12 +4,12 @@ namespace MemoryGame;
 class Card<T>
 {
     private T m_Value;
-    private bool m_Flipped;
+    private bool m_Displayed;
 
     public Card(T value)
     {
         m_Value = value;
-        m_Flipped = false;
+        m_Displayed = false;
     }
 
     public T Value
@@ -18,10 +18,10 @@ class Card<T>
         set{m_Value = value;}
     }
 
-    public bool Flipped
+    public bool Displayed
     {
-        get {return m_Flipped;}
-        set{m_Flipped = value;}
+        get {return m_Displayed;}
+        set{m_Displayed = value;}
     }
 
 }
