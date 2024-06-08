@@ -1,10 +1,10 @@
 using System;
 namespace MemoryGame;
-class Board<T>
+class Board
 {
     private int m_Height;
     private int m_Width;
-    private Card<T>[,] m_CardsMatrix;
+    private Card[,] m_CardsMatrix;
         
     public int Height
     {
@@ -18,12 +18,12 @@ class Board<T>
         set { m_Width = value;}
     }
 
-    public Card<T>[,] CardsMatrix
+    public Card[,] CardsMatrix
     {
         get { return m_CardsMatrix; }
     }
 
-    public Card<T> GetCardInIndex(int i_row, int i_col)
+    public Card GetCardInIndex(int i_row, int i_col)
     {
         return m_CardsMatrix[i_row , i_col];
     }
@@ -38,26 +38,16 @@ class Board<T>
         return isBoardSizeEven;
     }
 
-     public Board(int height, int width, T[] values)
+     public Board(int height, int width)
     {
         m_Height = height;
         m_Width = width;
-        InitializeBoard(values);
+        InitializeBoard();
     }
 
-    public void InitializeBoard(T[] values)
+    public void InitializeBoard()
     {
-        m_CardsMatrix = new Card<T>[m_Height, m_Width];
-
-        int valueIndex = 0;
-
-        for (int i = 0; i < m_Height; i++)
-        {
-            for (int j = 0; j < m_Width; j++)
-            {
-                m_CardsMatrix[i, j] = new Card<T>(values[valueIndex++]);
-            }
-        }
+        m_CardsMatrix = new Card[m_Height, m_Width];
     }
 
     public bool AreAllCardsDisplayed()

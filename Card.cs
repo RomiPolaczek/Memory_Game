@@ -1,18 +1,18 @@
 using System;
 namespace MemoryGame;
 
-class Card<T>
+class Card
 {
-    private T m_Value;
+    private char m_Value;
     private bool m_Displayed;
 
-    public Card(T value)
+    public Card(char value)
     {
         m_Value = value;
         m_Displayed = false;
     }
 
-    public T Value
+    public char Value
     {
         get {return m_Value;}
         set{m_Value = value;}
@@ -23,5 +23,4 @@ class Card<T>
         get {return m_Displayed;}
         set{m_Displayed = value;}
     }
-
 }

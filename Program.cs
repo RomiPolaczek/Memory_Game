@@ -6,10 +6,6 @@ class Program
     public static void Main()
     {
         UserInterface UI = new UserInterface();
-    
-        UI.SetBoardSize();
-        UI.SetPlayersName();
-        UI.DrawBoard();
-        UI.PlayTurn();
+        UI.RunGame();
     }
 }
