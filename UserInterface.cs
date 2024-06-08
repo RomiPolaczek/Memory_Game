@@ -259,7 +259,7 @@ class UserInterface
                 if (!selectedCard.Displayed)
                 {
                     selectedCard.Displayed = true;
-                    m_LogicManager.AddCardToMemory(selectedCard, row, col);
+                    m_LogicManager.AddCardToMemory(selectedCard.Value - 'A', row, col); ///////FIX
                 }
                 else
                 {

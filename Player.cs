@@ -24,10 +24,10 @@ class Player
         set { m_Name = value; }
     }
 
-    public string Score
+    public int Score
     {
-        get { return m_Name ; }
-        set { m_Name = value; }
+        get { return m_Score ; }
+        set { m_Score = value; }
     }
 
     public ePlayerTypes PlayerType
