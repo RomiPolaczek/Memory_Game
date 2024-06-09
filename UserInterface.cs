@@ -49,7 +49,7 @@ class UserInterface
         {
             for (int j = 0; j < m_LogicManager.Board.Width; j++)
             {
-                m_LogicManager.Board.CardsMatrix[i, j] = new Card(letters[letterIndex++]);
+                m_LogicManager.Board.CardsMatrix[i, j] = new Card(letters[letterIndex++], i, j);
             }
         }
     }
@@ -208,13 +208,18 @@ class UserInterface
                     if (firstCard.Value == secondCard.Value)
                     {
                         Console.WriteLine("It's a match");
+                        Thread.Sleep(2000);
                         m_LogicManager.UpdateScore();
                     }
                     else
                     {
+                        Thread.Sleep(2000);
                         Console.WriteLine("No match. Try again next turn.");
                         Thread.Sleep(2000);
                         m_LogicManager.NoMatch(firstCard, secondCard);
+                        m_LogicManager.AddCardToMemory(firstCard.Value - 'A', firstCard.Row, firstCard.Col); ///////FIX new
+                        m_LogicManager.AddCardToMemory(secondCard.Value - 'A', secondCard.Row, secondCard.Col); ///////FIX new
+
                     }
 
                     DrawBoard();
@@ -234,6 +239,7 @@ class UserInterface
         else
         {
             Console.WriteLine("Please select a card:");
+            Thread.Sleep(2000);
             newCard = m_LogicManager.ChooseOneCardComputer();
         }
 
@@ -259,7 +265,6 @@ class UserInterface
                 if (!selectedCard.Displayed)
                 {
                     selectedCard.Displayed = true;
-                    m_LogicManager.AddCardToMemory(selectedCard.Value - 'A', row, col); ///////FIX
                 }
                 else
                 {
