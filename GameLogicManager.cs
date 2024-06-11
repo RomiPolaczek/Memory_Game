@@ -9,7 +9,8 @@ class GameLogicManager
     private int m_CurrentPlayerIndex;
     private eGameMode m_CurrentGameMode;
     private Dictionary<int, List<Position>> m_CardMemory;
-    private int m_FirstRevealedCard;
+    private int m_PossibleMatchValue;
+    private int m_FirstSelectedCard;
 
     internal enum eGameMode //לבדוק תקינות קוד
     {
@@ -22,7 +23,8 @@ class GameLogicManager
         m_Players = new List<Player>();
         m_CurrentPlayerIndex = 0;
         m_CardMemory = new Dictionary<int, List<Position>>();
-        m_FirstRevealedCard = -1;
+        m_PossibleMatchValue = -1;
+        m_FirstSelectedCard = -1;
     }
 
 
@@ -41,12 +43,19 @@ class GameLogicManager
     public int CurrentPlayerIndex
     {
         get { return m_CurrentPlayerIndex; }
-        set
-        {
-            //if(value >= 2) //FIX!!!!!!!
-            //    value = 0;
-            m_CurrentPlayerIndex = value;
-        }
+        set { m_CurrentPlayerIndex = value; }
+    }
+
+    public int PossibleMatchValue
+    {
+        get { return m_PossibleMatchValue; }
+        set { m_PossibleMatchValue = value; }            
+    }
+
+    public int FirstSelectedCard
+    {
+        get { return m_FirstSelectedCard; }
+        set { m_FirstSelectedCard = value; }
     }
 
     public eGameMode CurrentGameMode
@@ -83,18 +92,18 @@ class GameLogicManager
     {
         Card selectedCard = null;
 
-        if (m_FirstRevealedCard != -1)
+        if (m_PossibleMatchValue != -1)
         {
-            List<Position> positions = m_CardMemory[m_FirstRevealedCard];
+            List<Position> positions = m_CardMemory[m_PossibleMatchValue];
             Position position = positions[0];
-            positions.RemoveAt(0);
-            if (positions.Count == 0)
-            {
-                m_CardMemory.Remove(m_FirstRevealedCard);
-            }
+            //positions.RemoveAt(0);
+            //if (positions.Count != 1)  //alternative- count == 0 || count == 2
+            //{
+            m_CardMemory.Remove(m_PossibleMatchValue);
+            //}
             selectedCard = m_Board.GetCardInIndex(position.Row, position.Col);
             selectedCard.Displayed = true;
-            m_FirstRevealedCard = -1;
+            m_PossibleMatchValue = -1;
         }
 
         else
@@ -104,7 +113,7 @@ class GameLogicManager
                 List<Position> positions = m_CardMemory[value];
                 if (positions.Count > 1)
                 {
-                    m_FirstRevealedCard = value;
+                    m_PossibleMatchValue = value;
                     Position currentPosition = positions[0];
                     m_CardMemory[value].Remove(positions[0]);
                     selectedCard = m_Board.GetCardInIndex(currentPosition.Row, currentPosition.Col);
@@ -123,7 +132,7 @@ class GameLogicManager
                     for (int col = 0; col < m_Board.Width; col++)
                     {
                         Card card = m_Board.GetCardInIndex(row, col); //new
-                        if (!card.Displayed && !IsCardInMemory(card)) //new
+                        if (!card.Displayed && !IsCardInMemory(card))
                         {
                             hiddenPositions.Add(new Position(row, col));
                         }
@@ -138,15 +147,14 @@ class GameLogicManager
 
                     if (m_CardMemory.ContainsKey(selectedCard.Value - 'A'))
                     {
-                        if (selectedCard.Row != m_CardMemory[selectedCard.Value - 'A'][0].Row || selectedCard.Col != m_CardMemory[selectedCard.Value - 'A'][0].Col)
-                        {
-                            m_FirstRevealedCard = selectedCard.Value - 'A';   /////לתקןןןןןןןן!
-                        }
-                        AddCardToMemory(selectedCard.Value - 'A', randomPosition.Row, randomPosition.Col); //לתקןןןןןןןןן
+                        m_PossibleMatchValue = selectedCard.Value - 'A';   /////לתקןןןןןןןן!
                     }
-                    else
+                   
+                    AddCardToMemory(selectedCard.Value - 'A', randomPosition.Row, randomPosition.Col); //לתקןןןןןןןן
+
+                    if (m_CardMemory[selectedCard.Value - 'A'].Count == 2 && m_FirstSelectedCard == selectedCard.Value - 'A')
                     {
-                        AddCardToMemory(selectedCard.Value - 'A', randomPosition.Row, randomPosition.Col); //לתקןןןןןןןן
+                        m_CardMemory.Remove(selectedCard.Value - 'A');
                     }
                 }
             }
@@ -211,9 +219,18 @@ class GameLogicManager
                     isCardInMemory = true;
                 }
             }
+          
         }
 
         return isCardInMemory;
+    }
+
+    public void DeleteHumanMatchFromMemory(int i_Value)
+    {
+        if (m_CardMemory.ContainsKey(i_Value))
+        {
+            m_CardMemory.Remove(i_Value);
+        }
     }
 }
 

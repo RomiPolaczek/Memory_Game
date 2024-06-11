@@ -16,11 +16,11 @@ class UserInterface
 
     public void SetBoard()
     {
+        Console.Clear();
         bool isBoardSizeEven = false;
 
         while (!isBoardSizeEven)
         {
-            
             Console.WriteLine("Please enter the board's width (must be between {0} and {1}):", k_MinBoardLength, k_MaxBoardLength);
             SetNumberInRange(out int width);
 
@@ -151,12 +151,23 @@ class UserInterface
 
     public void RunGame()
     {
+        bool continueGame = true;
+
         Menu();
-        SetBoard();
-    
-        while (!m_LogicManager.Board.AreAllCardsDisplayed() && !m_EndGame)
+
+        while (continueGame && !m_EndGame)
         {
-            PlayTurn();
+            SetBoard();
+
+            while (!m_LogicManager.Board.AreAllCardsDisplayed() && !m_EndGame)
+            {
+                PlayTurn();
+            }
+            if (m_LogicManager.Board.AreAllCardsDisplayed())
+            {
+                printScore();
+                endGameOrContinue(out continueGame);
+            }
         }
     }
 
@@ -192,12 +203,15 @@ class UserInterface
     {
         if (!m_EndGame)
         {
+            m_LogicManager.PossibleMatchValue = -1;
+            m_LogicManager.FirstSelectedCard = -1;
             DrawBoard();
             Console.WriteLine("{0}, it's your turn.", m_LogicManager.Players[m_LogicManager.CurrentPlayerIndex].Name);
             Card firstCard = ChooseOneCard();
 
             if (!m_EndGame)
             {
+                m_LogicManager.FirstSelectedCard = firstCard.Value - 'A'; ////// FIX
                 Console.Clear();
                 DrawBoard();
                 Card secondCard = ChooseOneCard();
@@ -210,6 +224,7 @@ class UserInterface
                         Console.WriteLine("It's a match");
                         Thread.Sleep(2000);
                         m_LogicManager.UpdateScore();
+                        m_LogicManager.DeleteHumanMatchFromMemory(firstCard.Value - 'A');
                     }
                     else
                     {
@@ -290,23 +305,29 @@ class UserInterface
         if (input.Length != 2)
         {
             isValidInput = false;
+            Console.WriteLine("Invalid lentgh. Please try again."); //TEST
         }
-
-        col = input[0] - 'A';
-        if (col < 0 || col >= m_LogicManager.Board.Width)
+        else
         {
-            isValidInput = false;
-        }
+            col = input[0] - 'A';
+            if (col < 0 || col >= m_LogicManager.Board.Width)
+            {
+                isValidInput = false;
+                Console.WriteLine("Invalid col number. Please try again."); //TEST
 
-        if (!int.TryParse(input.Substring(1), out row))
-        {
-            isValidInput = false;
-        }
+            }
 
-        row--; 
-        if (row < 0 || row >= m_LogicManager.Board.Height)
-        {
-            isValidInput = false;
+            if (!int.TryParse(input.Substring(1), out row))
+            {
+                isValidInput = false;
+            }
+
+            row--;
+            if (row < 0 || row >= m_LogicManager.Board.Height)
+            {
+                isValidInput = false;
+                Console.WriteLine("Invalid row number. Please try again."); //TEST
+            }
         }
 
         return isValidInput;
@@ -320,7 +341,7 @@ class UserInterface
         }
     }
 
-    private void SetPlayerName(int i_PlayerNumber,Player.ePlayerTypes i_Type)
+    public void SetPlayerName(int i_PlayerNumber,Player.ePlayerTypes i_Type)
     {
         string namePlayer;
 
@@ -337,4 +358,36 @@ class UserInterface
         m_LogicManager.AddPlayer(newPlayer);
     }
 
+    private void printScore()
+    {
+        if (m_LogicManager.Players[0].Score > m_LogicManager.Players[1].Score)
+        {
+            Console.WriteLine("The winner is {0} with {1} points! ", m_LogicManager.Players[0].Name, m_LogicManager.Players[0].Score);
+            Console.WriteLine("{0} with {1} points! ", m_LogicManager.Players[1].Name, m_LogicManager.Players[1].Score);
+        }
+        else
+        {
+            Console.WriteLine("The winner is {0} with {1} points! ", m_LogicManager.Players[1].Name, m_LogicManager.Players[1].Score);
+            Console.WriteLine("{0} with {1} points! ", m_LogicManager.Players[0].Name, m_LogicManager.Players[0].Score);
+        }
+    }
+
+    private void endGameOrContinue(out bool o_ContinueGame)
+    {
+        Thread.Sleep(2000);
+        Console.Clear();
+        Console.WriteLine("Do you want to play another game? \n(1) Yes \n(2) No");
+        string continueGameStr = Console.ReadLine();
+        while (continueGameStr != "1" && continueGameStr != "2")
+        {
+            Console.WriteLine("Invalid input. Please select 1 or 2");
+            continueGameStr = Console.ReadLine();
+        }
+        o_ContinueGame = continueGameStr == "1";
+        if (!o_ContinueGame)
+        {
+            Console.Clear();
+            Console.WriteLine("The game is over! thank you for playing (:");
+        }
+    }
 }
