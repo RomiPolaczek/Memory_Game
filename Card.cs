@@ -1,42 +1,36 @@
-using System;
 namespace MemoryGame;
 
-class Card
+internal class Card
 {
-    private char m_Value;
+    private readonly char r_Value;
     private bool m_Displayed;
-    private int m_Row; //new
-    private int m_Col; //new
-
+    private readonly Position r_Position; 
+    
     public Card(char value, int row, int col)
     {
-        m_Value = value;
+        r_Value = value;
         m_Displayed = false;
-        m_Row = row; //new
-        m_Col = col; //new
+        r_Position = new Position(row, col);
     }
 
     public char Value
     {
-        get {return m_Value;}
-        set{m_Value = value;}
+        get { return r_Value; }
     }
 
     public bool Displayed
     {
-        get {return m_Displayed;}
-        set{m_Displayed = value;}
+        get { return m_Displayed; }
+        set { m_Displayed = value; }
     }
 
-    public int Row //new
-    { 
-        get { return m_Row; }
-        set { m_Row = value; }
-    }
-
-    public int Col //new
+    public Position Position
     {
-        get { return m_Col; }
-        set { m_Col = value; }
+        get { return r_Position; }
+    }
+
+    public int CardValueToIndex()
+    {
+        return r_Value - 'A';
     }
 }

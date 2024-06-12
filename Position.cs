@@ -1,25 +1,23 @@
 namespace MemoryGame;
 
-class Position
+internal class Position
 {
-    private int m_Row;
-    private int m_Col;
+    private readonly int r_Row;
+    private readonly int r_Col;
 
     public Position(int i_Row, int i_Col)
     {
-        m_Row = i_Row;
-        m_Col = i_Col;
+        r_Row = i_Row;
+        r_Col = i_Col;
     }
 
     public int Row
     {
-        get{return m_Row;}
-        set{m_Row = value;}
+        get { return r_Row; }
     }
 
     public int Col
     {
-        get{return m_Col;}
-        set{m_Col = value;}
+        get { return r_Col; }
     }
 }

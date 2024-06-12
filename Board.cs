@@ -1,21 +1,30 @@
-using System;
 namespace MemoryGame;
-class Board
+internal class Board
 {
-    private int m_Height;
-    private int m_Width;
+    private readonly int r_Height;
+    private readonly int r_Width;
     private Card[,] m_CardsMatrix;
-        
+
+    public Board(int height, int width)
+    {
+        r_Height = height;
+        r_Width = width;
+        initializeBoard();
+    }
+
+    private void initializeBoard()
+    {
+        m_CardsMatrix = new Card[r_Height, r_Width];
+    }
+
     public int Height
     {
-        get { return m_Height; }
-        set { m_Height = value;}
+        get { return r_Height; }
     }
 
     public int Width
     {
-        get { return m_Width; }
-        set { m_Width = value;}
+        get { return r_Width; }
     }
 
     public Card[,] CardsMatrix
@@ -31,31 +40,22 @@ class Board
     public bool IsBoardSizeEven()
     {
         bool isBoardSizeEven = false;
-        if ((m_Height * m_Width) % 2 == 0)
+
+        if ((r_Height * r_Width) % 2 == 0)
         {
             isBoardSizeEven = true;
         }
+
         return isBoardSizeEven;
-    }
-
-     public Board(int height, int width)
-    {
-        m_Height = height;
-        m_Width = width;
-        InitializeBoard();
-    }
-
-    public void InitializeBoard()
-    {
-        m_CardsMatrix = new Card[m_Height, m_Width];
     }
 
     public bool AreAllCardsDisplayed()
     {
         bool allCardsDisplayed = true;
-        for (int i = 0; i < m_Height; i++)
+
+        for (int i = 0; i < r_Height; i++)
         {
-            for (int j = 0; j < m_Width; j++)
+            for (int j = 0; j < r_Width; j++)
             {
                 if(!m_CardsMatrix[i,j].Displayed)
                 {

@@ -1,38 +1,35 @@
-using System;
 namespace MemoryGame;
-class Player 
+internal class Player 
 {
-    private string m_Name;
+    private readonly string r_Name;
     private int m_Score;
-    private ePlayerTypes m_PlayerType;
-    internal enum ePlayerTypes
+    private readonly ePlayerType r_PlayerType;
+    internal enum ePlayerType
     {
         Human,
         Computer
     }
 
-    public Player(string i_Name, ePlayerTypes i_PlayerType)
+    public Player(string i_Name, ePlayerType i_PlayerType)
     {
-        m_Name = i_Name;
+        r_Name = i_Name;
         m_Score = 0;
-        m_PlayerType = i_PlayerType;
+        r_PlayerType = i_PlayerType;
     }
 
     public string Name
     {
-        get { return m_Name ; }
-        set { m_Name = value; }
+        get { return r_Name; }
     }
 
     public int Score
     {
-        get { return m_Score ; }
+        get { return m_Score; }
         set { m_Score = value; }
     }
 
-    public ePlayerTypes PlayerType
+    public ePlayerType PlayerType
     {
-        get { return m_PlayerType ; }
-        set { m_PlayerType = value; }
+        get { return r_PlayerType; }
     }
 }

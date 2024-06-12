@@ -5,16 +5,99 @@ using System.Collections.Generic;
 using System.Threading;
 namespace MemoryGame;
 
-class UserInterface
+internal class UserInterface
 {
     private const int k_MaxBoardLength = 6;
     private const int k_MinBoardLength = 4;
     private const int k_NumOfPlayers = 2;
-    private bool m_EndGame = false;
-    private GameLogicManager m_LogicManager = new GameLogicManager();
-    
+    private bool m_EndGame;
+    private GameLogicManager m_LogicManager; 
 
-    public void SetBoard()
+    public UserInterface()
+    {
+        m_LogicManager = new GameLogicManager();  
+        m_EndGame = false;
+    }
+
+    public void RunGame()
+    {
+        bool continueGame = true;
+
+        menu();
+
+        while (continueGame && !m_EndGame)
+        {
+            setBoard();
+
+            while (!m_LogicManager.Board.AreAllCardsDisplayed() && !m_EndGame)
+            {
+                playTurn();
+            }
+
+            if (m_LogicManager.Board.AreAllCardsDisplayed())
+            {
+                printScore();
+                endGameOrContinue(out continueGame);
+            }
+        }
+    }
+
+    private void menu()
+    {
+        Console.WriteLine("Welcome to Memory Game!");
+        Console.WriteLine("Please choose a game mode:");
+        Console.WriteLine("(1) Player vs. Player");
+        Console.WriteLine("(2) Player vs. Computer");
+
+        string selectedGameMode = Console.ReadLine();
+
+        while(selectedGameMode != "1" && selectedGameMode != "2")
+        {
+            Console.WriteLine("Invalid game mode. Please choose 1 or 2.");
+            selectedGameMode = Console.ReadLine();
+        }
+
+        if(selectedGameMode == "1")
+        {   
+            m_LogicManager.CurrentGameMode = GameLogicManager.eGameMode.HumanVsHuman;
+            setHumanPlayers();
+        }
+        else
+        {
+            m_LogicManager.CurrentGameMode = GameLogicManager.eGameMode.ComputerVsHuman;
+            setPlayerName(1, Player.ePlayerType.Human);
+            setPlayerName(2, Player.ePlayerType.Computer);
+        }
+    }
+
+    private void setHumanPlayers()
+    {
+        for (int i = 0; i < k_NumOfPlayers ; i++)
+        {
+            setPlayerName(i + 1, Player.ePlayerType.Human); // Pass the player number for display purposes
+        }
+    }
+
+    private void setPlayerName(int i_PlayerNumber, Player.ePlayerType i_Type)
+    {
+        string namePlayer;
+
+        if(i_Type == Player.ePlayerType.Human)
+        {
+            Console.WriteLine("Please enter the name of player {0}:", i_PlayerNumber);
+            namePlayer = Console.ReadLine();
+        }
+        else
+        {
+            namePlayer = "Computer";
+        }
+
+        Player newPlayer = new Player(namePlayer, i_Type);
+
+        m_LogicManager.AddPlayer(newPlayer);
+    }
+
+    private void setBoard()
     {
         Console.Clear();
         bool isBoardSizeEven = false;
@@ -22,10 +105,10 @@ class UserInterface
         while (!isBoardSizeEven)
         {
             Console.WriteLine("Please enter the board's width (must be between {0} and {1}):", k_MinBoardLength, k_MaxBoardLength);
-            SetNumberInRange(out int width);
+            setNumberInRange(out int width);
 
             Console.WriteLine("Please enter the board's height (must be between {0} and {1}):", k_MinBoardLength, k_MaxBoardLength);
-            SetNumberInRange(out int height);
+            setNumberInRange(out int height);
 
             m_LogicManager.Board = new Board(height, width);
             isBoardSizeEven = m_LogicManager.Board.IsBoardSizeEven();
@@ -37,24 +120,12 @@ class UserInterface
             }
 
             char[] letters = generateLettersForBoard(height, width);
-            InitializeCardsInBoard(letters);
+
+            initializeCardsInBoard(letters);
         }
     }
 
-    public void InitializeCardsInBoard(char[] letters)
-    {
-        int letterIndex = 0;
-
-        for (int i = 0; i < m_LogicManager.Board.Height; i++)
-        {
-            for (int j = 0; j < m_LogicManager.Board.Width; j++)
-            {
-                m_LogicManager.Board.CardsMatrix[i, j] = new Card(letters[letterIndex++], i, j);
-            }
-        }
-    }
-
-    public void SetNumberInRange(out int o_UserInput)
+    private void setNumberInRange(out int o_UserInput)
     {
         o_UserInput = 0;
         bool isNumber = false;
@@ -76,15 +147,101 @@ class UserInterface
         }
     }
 
-    public void DrawBoard()
+    private char[] generateLettersForBoard(int i_Height, int i_Width)
+    {
+        int numPairs = (i_Height * i_Width) / 2;
+        char[] letters = new char[i_Height * i_Width];
+
+        for (int i = 0; i < numPairs; i++)
+        {
+            char letter = (char)('A' + i);
+            letters[2 * i] = letter;
+            letters[2 * i + 1] = letter;
+        }
+
+        Random rnd = new Random();
+
+        for (int i = letters.Length - 1; i > 0; i--)
+        {
+            int randomIndex = rnd.Next(i + 1);
+            char currentLetter = letters[i];
+            letters[i] = letters[randomIndex];
+            letters[randomIndex] = currentLetter;
+        }
+
+        return letters;
+    }
+
+    private void initializeCardsInBoard(char[] i_Letters)
+    {
+        int letterIndex = 0;
+
+        for (int i = 0; i < m_LogicManager.Board.Height; i++)
+        {
+            for (int j = 0; j < m_LogicManager.Board.Width; j++)
+            {
+                m_LogicManager.Board.CardsMatrix[i, j] = new Card(i_Letters[letterIndex++], i, j);
+            }
+        }
+    }
+
+    private void playTurn()
+    {
+        if (!m_EndGame)
+        {
+            m_LogicManager.PossibleMatchValue = -1;
+            m_LogicManager.FirstSelectedCard = -1;
+
+            drawBoard();
+            Console.WriteLine("{0}, it's your turn.", m_LogicManager.Players[m_LogicManager.CurrentPlayerIndex].Name);
+
+            Card firstCard = chooseOneCard();
+
+            printComputerChoice(firstCard);
+
+            if (!m_EndGame)
+            {
+                m_LogicManager.FirstSelectedCard = firstCard.CardValueToIndex(); 
+                Console.Clear();
+                drawBoard();
+
+                Card secondCard = chooseOneCard();
+
+                printComputerChoice(secondCard);
+                drawBoard();
+
+                if (!m_EndGame)
+                {
+                    if (firstCard.Value == secondCard.Value)
+                    {
+                        Console.WriteLine("It's a match");
+                        Thread.Sleep(2000);
+                        m_LogicManager.UpdateScore();
+                        m_LogicManager.DeleteHumanMatchFromMemory(firstCard.CardValueToIndex());
+                    }
+                    else
+                    {
+                        Thread.Sleep(2000);
+                        Console.WriteLine("No match. Try again next turn.");
+                        Thread.Sleep(2000);
+                        m_LogicManager.NoMatch(firstCard, secondCard);
+                        m_LogicManager.AddCardToMemory(firstCard.CardValueToIndex(), firstCard.Position.Row, firstCard.Position.Col); 
+                        m_LogicManager.AddCardToMemory(secondCard.CardValueToIndex(), secondCard.Position.Row, secondCard.Position.Col);
+                    }
+
+                    drawBoard();
+                }
+            }
+        }
+    }
+
+    private void drawBoard()
     {
         int amountOfEqualSigns = (m_LogicManager.Board.Width * 4) + 1;
         string equalLine = string.Format("  {0}", new string('=', amountOfEqualSigns));
 
         Console.Clear(); ///לשנות !!!
-        //drawTurnStatus();
         drawTopLetterRow(m_LogicManager.Board.Width);
-
         Console.WriteLine(equalLine);
 
         for (int i = 0; i < m_LogicManager.Board.Height; i++)
@@ -117,151 +274,34 @@ class UserInterface
         for (int j = 0; j < m_LogicManager.Board.Width; j++)
         {
             char cardLetter = m_LogicManager.Board.GetCardInIndex(i_Index, j).Value;
-            bool isDisplayed= m_LogicManager.Board.GetCardInIndex(i_Index, j).Displayed;
-            string CardToPrint = string.Format(" {0} |", isDisplayed ? cardLetter : ' ');
-            Console.Write(CardToPrint);
+            bool isDisplayed = m_LogicManager.Board.GetCardInIndex(i_Index, j).Displayed;
+            string cardToPrint = string.Format(" {0} |", isDisplayed ? cardLetter : ' ');
+            Console.Write(cardToPrint);
         }
+
         Console.WriteLine();
     }
-
-    private char[] generateLettersForBoard(int i_Height, int i_Width)
-    {
-        int numPairs = (i_Height * i_Width) / 2;
-        char[] letters = new char[i_Height * i_Width];
-
-        for (int i = 0; i < numPairs; i++)
-        {
-            char letter = (char)('A' + i);
-            letters[2 * i] = letter;
-            letters[2 * i + 1] = letter;
-        }
-
-        // Shuffle letters
-        Random rnd = new Random();
-        for (int i = letters.Length - 1; i > 0; i--)
-        {
-            int j = rnd.Next(i + 1);
-            char temp = letters[i];
-            letters[i] = letters[j];
-            letters[j] = temp;
-        }
-
-        return letters;
-    }
-
-    public void RunGame()
-    {
-        bool continueGame = true;
-
-        Menu();
-
-        while (continueGame && !m_EndGame)
-        {
-            SetBoard();
-
-            while (!m_LogicManager.Board.AreAllCardsDisplayed() && !m_EndGame)
-            {
-                PlayTurn();
-            }
-            if (m_LogicManager.Board.AreAllCardsDisplayed())
-            {
-                printScore();
-                endGameOrContinue(out continueGame);
-            }
-        }
-    }
-
-    public void Menu()
-    {
-        Console.WriteLine("Welcome to Memory Game!");
-        Console.WriteLine("Please choose a game mode:");
-        Console.WriteLine("(1) Player vs. Player");
-        Console.WriteLine("(2) Player vs. Computer");
-
-        string selectedGameMode = Console.ReadLine();
-
-        while(selectedGameMode != "1" && selectedGameMode != "2")
-        {
-            Console.WriteLine("Invalid game mode. Please choose 1 or 2.");
-            selectedGameMode = Console.ReadLine();
-        }
-
-        if(selectedGameMode == "1")
-        {   
-            m_LogicManager.CurrentGameMode = GameLogicManager.eGameMode.HumanVsHuman;
-            SetHumanPlayers();
-        }
-        else
-        {
-            m_LogicManager.CurrentGameMode = GameLogicManager.eGameMode.ComputerVsHuman;
-            SetPlayerName(1, Player.ePlayerTypes.Human);
-            SetPlayerName(2, Player.ePlayerTypes.Computer);
-        }
-    }
-
-    public void PlayTurn()
-    {
-        if (!m_EndGame)
-        {
-            m_LogicManager.PossibleMatchValue = -1;
-            m_LogicManager.FirstSelectedCard = -1;
-            DrawBoard();
-            Console.WriteLine("{0}, it's your turn.", m_LogicManager.Players[m_LogicManager.CurrentPlayerIndex].Name);
-            Card firstCard = ChooseOneCard();
-
-            if (!m_EndGame)
-            {
-                m_LogicManager.FirstSelectedCard = firstCard.Value - 'A'; ////// FIX
-                Console.Clear();
-                DrawBoard();
-                Card secondCard = ChooseOneCard();
-                DrawBoard();
-
-                if (!m_EndGame)
-                {
-                    if (firstCard.Value == secondCard.Value)
-                    {
-                        Console.WriteLine("It's a match");
-                        Thread.Sleep(2000);
-                        m_LogicManager.UpdateScore();
-                        m_LogicManager.DeleteHumanMatchFromMemory(firstCard.Value - 'A');
-                    }
-                    else
-                    {
-                        Thread.Sleep(2000);
-                        Console.WriteLine("No match. Try again next turn.");
-                        Thread.Sleep(2000);
-                        m_LogicManager.NoMatch(firstCard, secondCard);
-                        m_LogicManager.AddCardToMemory(firstCard.Value - 'A', firstCard.Row, firstCard.Col); ///////FIX new
-                        m_LogicManager.AddCardToMemory(secondCard.Value - 'A', secondCard.Row, secondCard.Col); ///////FIX new
-
-                    }
-
-                    DrawBoard();
-                }
-            }
-        }
-    }
     
-    public Card ChooseOneCard()
+    private Card chooseOneCard()
     {
         Card newCard;
 
-        if (m_LogicManager.Players[m_LogicManager.CurrentPlayerIndex].PlayerType == Player.ePlayerTypes.Human)
+        if (m_LogicManager.Players[m_LogicManager.CurrentPlayerIndex].PlayerType == Player.ePlayerType.Human)
         {
-            newCard = ChooseOneCardHuman();
+            newCard = chooseOneCardHuman();
         }
         else
         {
             Console.WriteLine("Please select a card:");
             Thread.Sleep(2000);
+
             newCard = m_LogicManager.ChooseOneCardComputer();
         }
 
         return newCard;
     }
 
-    public Card ChooseOneCardHuman()
+    private Card chooseOneCardHuman()
     {
         Card selectedCard = null;
 
@@ -295,35 +335,37 @@ class UserInterface
 
         return selectedCard;
     }
-   
-    private bool parseInput(string input, out int row, out int col)
+
+    private bool parseInput(string i_InputStr, out int o_Row, out int o_Col)
     {
-        row = -1;
-        col = -1;
+        o_Row = -1;
+        o_Col = -1;
         bool isValidInput = true;
 
-        if (input.Length != 2)
+        if (i_InputStr.Length != 2)
         {
             isValidInput = false;
             Console.WriteLine("Invalid lentgh. Please try again."); //TEST
         }
         else
         {
-            col = input[0] - 'A';
-            if (col < 0 || col >= m_LogicManager.Board.Width)
+            o_Col = i_InputStr[0] - 'A';
+
+            if (o_Col < 0 || o_Col >= m_LogicManager.Board.Width)
             {
                 isValidInput = false;
                 Console.WriteLine("Invalid col number. Please try again."); //TEST
 
             }
 
-            if (!int.TryParse(input.Substring(1), out row))
+            if (!int.TryParse(i_InputStr.Substring(1), out o_Row))
             {
                 isValidInput = false;
             }
 
-            row--;
-            if (row < 0 || row >= m_LogicManager.Board.Height)
+            o_Row--;
+
+            if (o_Row < 0 || o_Row >= m_LogicManager.Board.Height)
             {
                 isValidInput = false;
                 Console.WriteLine("Invalid row number. Please try again."); //TEST
@@ -332,31 +374,15 @@ class UserInterface
 
         return isValidInput;
     }
-
-    public void SetHumanPlayers()
+    
+    private void printComputerChoice(Card i_SelectedCard)
     {
-        for (int i = 0; i < k_NumOfPlayers ; i++)
+        if (m_LogicManager.Players[m_LogicManager.CurrentPlayerIndex].PlayerType == Player.ePlayerType.Computer)
         {
-            SetPlayerName(i + 1, Player.ePlayerTypes.Human); // Pass the player number for display purposes
+            Console.WriteLine("{0}{1}", (char)(i_SelectedCard.Position.Col + 'A'), i_SelectedCard.Position.Row + 1);
+            Thread.Sleep(1000);
         }
-    }
-
-    public void SetPlayerName(int i_PlayerNumber,Player.ePlayerTypes i_Type)
-    {
-        string namePlayer;
-
-        if(i_Type == Player.ePlayerTypes.Human)
-        {
-            Console.WriteLine("Please enter the name of player {0}:", i_PlayerNumber);
-            namePlayer = Console.ReadLine();
-        }
-        else
-        {
-            namePlayer = "Computer";
-        }
-        Player newPlayer = new Player(namePlayer, i_Type);
-        m_LogicManager.AddPlayer(newPlayer);
-    }
+    }  
 
     private void printScore()
     {
@@ -377,13 +403,17 @@ class UserInterface
         Thread.Sleep(2000);
         Console.Clear();
         Console.WriteLine("Do you want to play another game? \n(1) Yes \n(2) No");
+
         string continueGameStr = Console.ReadLine();
+
         while (continueGameStr != "1" && continueGameStr != "2")
         {
             Console.WriteLine("Invalid input. Please select 1 or 2");
             continueGameStr = Console.ReadLine();
         }
-        o_ContinueGame = continueGameStr == "1";
+
+        o_ContinueGame = (continueGameStr == "1");
+
         if (!o_ContinueGame)
         {
             Console.Clear();
