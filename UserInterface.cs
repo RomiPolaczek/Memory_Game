@@ -1,7 +1,5 @@
 using System;
-using System.Security.AccessControl;
 using System.Text;
-using System.Collections.Generic;
 using System.Threading;
 namespace MemoryGame;
 
@@ -240,7 +238,7 @@ internal class UserInterface
         int amountOfEqualSigns = (m_LogicManager.Board.Width * 4) + 1;
         string equalLine = string.Format("  {0}", new string('=', amountOfEqualSigns));
 
-        Console.Clear(); ///לשנות !!!
+        Console.Clear(); 
         drawTopLetterRow(m_LogicManager.Board.Width);
         Console.WriteLine(equalLine);
 
@@ -345,7 +343,6 @@ internal class UserInterface
         if (i_InputStr.Length != 2)
         {
             isValidInput = false;
-            Console.WriteLine("Invalid lentgh. Please try again."); //TEST
         }
         else
         {
@@ -354,7 +351,6 @@ internal class UserInterface
             if (o_Col < 0 || o_Col >= m_LogicManager.Board.Width)
             {
                 isValidInput = false;
-                Console.WriteLine("Invalid col number. Please try again."); //TEST
 
             }
 
@@ -368,7 +364,6 @@ internal class UserInterface
             if (o_Row < 0 || o_Row >= m_LogicManager.Board.Height)
             {
                 isValidInput = false;
-                Console.WriteLine("Invalid row number. Please try again."); //TEST
             }
         }
 
